@@ -1,0 +1,203 @@
+\documentclass[a4paper]{article}
+\usepackage[latin1]{inputenc}
+%\usepackage[german]{babel}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{latexsym}
+\usepackage{amsfonts}
+%\usepackage{bussproofs}
+\usepackage{color}
+\usepackage{theorem}
+\linespread{1.3} \emergencystretch 20mm
+\title{Diskrete Fourier Transformation}
+\author{Stephan Widor}
+
+\setlength{\oddsidemargin}{0pt} \setlength{\evensidemargin}{0pt} \setlength{\marginparwidth}{1in} 
+\setlength{\marginparsep}{0pt} \setlength{\topmargin}{0pt} \setlength{\headheight}{0pt} 
+\setlength{\headsep}{0pt} \setlength{\topskip}{0pt} \setlength{\footskip}{0pt} 
+\setlength{\textwidth}{\paperwidth} \addtolength{\textwidth}{-2in} 
+\setlength{\textheight}{\paperheight} \addtolength{\textheight}{-2in} \setlength{\parindent}{0pt} 
+\setlength{\unitlength}{1sp}
+
+\newcommand{\ds}{\displaystyle}
+\newcommand{\er}{\mathbb{R}}
+\newcommand{\qu}{\mathbb{Q}}
+\newcommand{\ce}{\mathbb{C}}
+\newcommand{\en}{\mathbb{N}}
+\newcommand{\zet}{\mathbb{Z}}
+\newcommand{\ka}{\mathbb{K}}
+\newcommand{\pe}{\mathcal{P}}
+\newcommand{\el}{\mathcal{L}}
+\newcommand{\Oh}{\mathcal{O}}
+\newcommand{\Ah}{\mathfrak{A}}
+\newcommand{\Be}{\mathfrak{B}}
+\newcommand{\En}{\mathfrak{N}}
+\newcommand{\Er}{\mathfrak{R}}
+\newcommand{\Vau}{\mathfrak{V}}
+\newcommand{\nlim}{\ds\lim_{n\rightarrow\infty}}
+\newcommand{\hlim}{\ds\lim_{h\rightarrow0}}
+\newcommand{\nreihe}[1]{\ds\sum_{n=#1}^\infty}
+\newcommand{\kreihe}[1]{\ds\sum_{k=#1}^\infty}
+
+\newcommand{\nt}[1]{\begin{rm}{#1}\end{rm}}
+
+\newcommand{\rd}{\begin{rm}{rd}\end{rm}}
+%\newcommand{\m}[2]{\left(\begin{array}{#1} #2 \end{array}\right)}
+\newcommand{\m}[1]{\left(\begin{matrix} #1 \end{matrix}\right)}
+\newcommand{\rg}{\begin{rm}rg\end{rm}}
+\newcommand{\ran}{\begin{rm}ran\end{rm}}
+\newcommand{\defekt}{\begin{rm}def\end{rm}}
+\newcommand{\de}{\begin{rm}d\end{rm}}
+\renewcommand{\Re}{\begin{rm}Re\end{rm}}
+\renewcommand{\Im}{\begin{rm}Im\end{rm}}
+\newcommand{\id}{\begin{rm}Id\end{rm}}
+\newcommand{\hau}{\begin{rm}hau\end{rm}}
+\newcommand{\End}{\begin{rm}end\end{rm}}
+\newcommand{\eig}{\begin{rm}eig\end{rm}}
+\newcommand{\grad}{\begin{rm}grad\end{rm}}
+\newcommand{\rot}{\begin{rm}rot\end{rm}}
+\newcommand{\sgn}{\begin{rm}sgn\end{rm}}
+\newcommand{\6}{\langle}
+\newcommand{\ß}{\rangle}
+\renewcommand{\phi}{\varphi}				
+
+\newcommand{\ra}{\rightarrow}
+\newcommand{\rl}[1]{\RightLabel{\tiny$#1$}}
+\newcommand{\rlimp}[1]{\RightLabel{\tiny$\ra^+_{#1}$}}
+\newcommand{\ac}[1]{\AxiomC{$#1$}}
+\newcommand{\uic}[1]{\UnaryInfC{$#1$}}
+\newcommand{\bic}[1]{\BinaryInfC{$#1$}}
+\newcommand{\dpr}{\DisplayProof}
+\newcommand{\wf}{widerspruchsfrei}
+\newcommand{\wv}{widerspruchsvoll}
+\newcommand{\mwf}{maximal widerspruchsfrei}
+\newcommand{\fp}{\begin{rm}Form\end{rm}_{prop}}
+\newcommand{\nvm}{\nVdash^M}
+\newcommand{\vm}{\Vdash^M}
+\newcommand{\term}{\begin{rm}Term\end{rm}}
+\newcommand{\form}{\begin{rm}Form\end{rm}}
+\newcommand{\var}{\begin{rm}Var\end{rm}}
+\newcommand{\konst}{\begin{rm}Konst\end{rm}}
+\newcommand{\funk}{\begin{rm}Funk\end{rm}}
+\newcommand{\rel}{\begin{rm}Rel\end{rm}}
+\newcommand{\fv}{\begin{rm}FV\end{rm}}
+\newcommand{\prim}{\nt{Prim}}
+\newcommand{\tr}{\nt{Tr}}
+\newcommand{\ar}{\nt{Ar}}
+\newcommand{\dom}{\nt{dom}}
+\newcommand{\rng}{\nt{rng}}
+\newcommand{\rt}{\nt{rt}}
+\newcommand{\Id}{\nt{Id}}
+\newcommand{\datum}[1]{\begin{flushright} #1 \end{flushright}}
+\newcommand{\gdw}[1]{\hspace{3mm}\nt{gdw_{#1}}\hspace{3mm}}
+\newcommand{\beweis}{\emph{Beweis:}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+
+\newcommand{\goeterm}[1]{\ulcorner #1\urcorner}
+\newcommand{\Bew}{\nt{Bew}}
+\newcommand{\bew}{\nt{bew}}
+\newcommand{\bwb}{\nt{bwb}}
+\newcommand{\diag}{\nt{diag}}
+
+\theorembodyfont{\upshape}
+\theoremstyle{break}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{satz}{Satz}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{korollar}{Korollar}[section]
+
+\begin{document}
+
+\maketitle
+\pagestyle{empty}
+
+\paragraph{Interpolation mit Einheitswurzeln}\hspace{1cm}
+
+Seien $N=2n\in\en$, $s_0,s_1,...,s_{N-1}\in\ce$, $t_k=\frac{2\pi k}{N}$ für $k=0,...,N-1$. Dann existieren $c_0,..,c_{N-1}$ und eine Funktion $f:\er\ra\ce$,
+$t\mapsto\frac{1}{N}\ds\sum_{j=0}^{N-1}c_je^{ijt}$ mit $f(t_k)=s_k$.
+\\ \beweis
+\\ Wähle $c_0,..,c_{N-1}\in\ce$, so daß das Polynom $P(z)=\frac{1}{N}\ds\sum_{j=0}^{N-1}c_jz^j$ den $N$-ten Einheitswurzeln $z_k=e^{\frac{i2\pi k}{N}}$ die $s_k$ zuordnet, d.h. $P(z_k)=s_k$. Dann ist $f(t_k)=\frac{1}{N}\ds\sum_{j=0}^{N-1}c_je^{ij\frac{2\pi k}{N}}=P(z_k)=s_k$.
+
+\paragraph{Interpretation}\hspace{1cm}
+
+Für $T\in\er_+$ lassen sich Werte $s_0,...,s_{N-1}$ zu diskreten äquidistanten Zeitpunkten $t_k=\frac{kT}{N}$ interpolieren durch eine stetige $T$-periodische Funktion $f$, die sich aus der Summe gewichteter Einzelschwingungen ergibt. Für jedes $j=0,..,N-1$ ist die Komponente $c_je^{ijt}=c_j(\cos(jt)+i\sin(jt))$ eine ``um die Zeitachse schwingende'' Funktion mit Amplitude $c_j$ und Periode $\frac{2\pi}{j}$ bzw. Frequenz $\frac{j}{2\pi}$.
+
+\paragraph{Berechnung}\hspace{1cm}
+
+Mit $\omega:=e^{\frac{i2\pi}{N}}$ ist $s_k=\frac{1}{N}\ds\sum_{j=0}^{N-1}c_j\omega^{jk}$. Sei
+$M:=\frac{1}{N}\m{\omega^{0\cdot0}    & ...     & \omega^{0\cdot(N-1)} \\
+                  \vdots              & \ddots  & \vdots \\
+                  \omega^{(N-1)\cdot0} & ...    & \omega^{(N-1)(N-1)}}$.
+\\ Dann ist $\m{s_0 \\ \vdots \\ s_{N-1}}=M\m{c_0 \\ \vdots \\ c_{N-1}}$.
+\\ Es ist
+$M^{-1}=\m{\omega^{-0\cdot0}     & ...     & \omega^{-0\cdot(N-1)} \\
+           \vdots                & \ddots  & \vdots \\
+           \omega^{-(N-1)\cdot0} & ...     & \omega^{-(N-1)(N-1)}}$, also
+\\ $c_k=\ds\sum_{j=0}^{N-1}s_j\omega^{-jk}$.
+
+Insgesamt also:
+
+$c_k=\ds\sum_{j=0}^{N-1}s_j\omega^{-jk}=
+\ds\sum_{j=0}^{N-1}s_j\left(\cos\left(\frac{-2\pi jk}{N}\right)+i\sin\left(\frac{-2\pi jk}{N}\right)\right)=
+\ds\sum_{j=0}^{N-1}s_j\left(\cos\left(\frac{2\pi jk}{N}\right)-i\sin\left(\frac{2\pi jk}{N}\right)\right)$
+und
+
+$s_k=\frac{1}{N}\ds\sum_{j=0}^{N-1}s_j\omega^{jk}=
+\frac{1}{N}\ds\sum_{j=0}^{N-1}c_j\left(\cos\left(\frac{2\pi jk}{N}\right)+i\sin\left(\frac{2\pi jk}{N}\right)\right)$.
+
+\paragraph{Reelle Werte}\hspace{1cm}
+
+Gilt $s_k\in\er$ für alle $k=0,..,N-1$, so folgt für $k=1,..,N-1$:
+\\ $c_{N-k}=\ds\sum_{j=0}^{N-1}s_je^{-\frac{2\pi ij(N-k)}{N}}
+        =\ds\sum_{j=0}^{N-1}s_je^{-2\pi ij+\frac{2\pi ijk}{N}}
+        =\ds\sum_{j=0}^{N-1}s_j\underbrace{e^{-2\pi ij}}_{=1}e^{\frac{2\pi ijk}{N}}
+        =\ds\sum_{j=0}^{N-1}s_j\overline{e^{-\frac{2\pi ijk}{N}}}
+        =\overline{c_k}$.
+\\ Koeffizienten $c_k$ für $k>n$ müssen also nicht berechnet werden, sondern ergeben sich direkt als komplex konjugierte Werte von $c_{N-k}$. Weiter folgt $c_k+c_{N-k}=2Re(c_k)$, $c_k-c_{N-k}=2Im(c_k)i$ und $c_0,c_n\in\er$.
+\\ Für die Darstellung der Interpolationsfunktion durch Sinus- und Kosinusfunktionen ergibt sich daher bei ausschließlich reellen $s_k$ folgendes:
+\\ Es ist
+
+$\ds\sum_{j=0}^{N-1}c_j\cos\left(\frac{2\pi jk}{N}\right)
+=c_0+\sum_{j=1}^{n-1}\left(c_j\cos\left(\frac{2\pi jk}{N}\right)+c_{N-j}\cos\left(\frac{2\pi (N-j)k}{N}\right)\right)+c_n\cos\left(\frac{2\pi nk}{N}\right)=
+\\ c_0+\sum_{j=1}^{n-1}(c_j+c_{N-j})\cos\left(\frac{2\pi jk}{N}\right)+c_n\cos\left(\frac{2\pi nk}{N}\right)=
+c_0+\sum_{j=1}^{n-1}2Re(c_j)\cos\left(\frac{2\pi jk}{N}\right)+c_n\cos\left(\frac{2\pi nk}{N}\right)$
+
+und
+
+$\ds\sum_{j=0}^{N-1}c_j\sin\left(\frac{2\pi jk}{N}\right)
+=\sum_{j=1}^{n-1}\left(c_j\sin\left(\frac{2\pi jk}{N}\right)+c_{N-j}\sin\left(\frac{2\pi (N-j)k}{N}\right)\right)+c_n\sin\left(\pi k\right)=
+\\ \sum_{j=1}^{n-1}(c_j-c_{N-j})\sin\left(\frac{2\pi jk}{N}\right)
+=i\sum_{j=1}^{n-1}2Im(c_j)\sin\left(\frac{2\pi jk}{N}\right)$.
+
+Es folgt also
+
+$s_k=\ds\frac{1}{N}\left(\sum_{j=0}^{N-1}c_j\cos\left(\frac{2\pi jk}{N}\right)+i\sum_{j=0}^{N-1}c_j\sin\left(\frac{2\pi jk}{N}\right)\right)=
+\\ \frac{1}{N}\left(c_0+\sum_{j=1}^{n-1}\left(2Re(c_j)\cos\left(\frac{2\pi jk}{N}\right)-2Im(c_j)\sin\left(\frac{2\pi jk}{N}\right)\right)+c_n\cos\left(\frac{2\pi nk}{N}\right)\right)$.
+\\ Das heißt, die Werte $s_0,...,s_{N-1}$ lassen sich ebenso interpolieren durch eine Funktion
+\\ $g:\er\ra\er$, $t\mapsto
+\frac{1}{N}\left(a_0+\ds\sum_{j=1}^{n-1}\left(a_j\cos(jt)+b_j\sin(jt)\right)+a_n\cos(nt)\right)$,
+\\ wobei $a_0=c_0$, $a_n=c_n$ und $a_j=2Re(c_j)$ und $b_j=-2Im(c_j)$ für $j=1,...,n-1$.
+
+\paragraph{Schnelle Berechnung (FFT)}\hspace{1cm}
+
+Sei $s'_k=s_{2k}$ und $s''_k=s_{2k+1}$ für $k=0,..,n-1$, d.h. $s'_k$ die Folgeglieder mit geradem, $s''_k$ die mit ungeradem Index. Seien $c'_k$ und $c''_k$ die entsprechenden Koeffizienten einer DFT der Länge $n$, d.h.
+\\ $c'_k=\ds\sum_{j=0}^{n-1}s'_ke^{\frac{-i2\pi jk}{n}}$ und $c''_k=\ds\sum_{j=0}^{n-1}s''_ke^{\frac{-i2\pi jk}{n}}$ für $k=0,..,n-1$.
+
+Dann ist für $k=0,...,N-1$
+
+$c_k=\ds\sum_{j=0}^{N-1}s_je^{\frac{-i2\pi jk}{N}}=
+\sum_{j=0}^{n-1}s_{2j}e^{\frac{-i2\pi 2jk}{2n}}+\sum_{j=0}^{n-1}s_{2j+1}e^{\frac{-i2\pi(2j+1)k}{2n}}=
+\sum_{j=0}^{n-1}s_{2j}e^{\frac{-i2\pi jk}{n}}+e^{\frac{-i\pi k}{n}}\sum_{j=0}^{n-1}s_{2j+1}e^{\frac{-i2\pi jk}{n}}$ und damit
+
+$c_k=
+\left\{
+\begin{matrix}
+c'_k+e^{\frac{-i\pi k}{n}}c''_k & \textnormal{für } k=0,...,n-1, \\
+c'_{k-n}-e^{\frac{-i\pi(k-n)}{n}}c''_{k-n} & \textnormal{ für } k=n,...,N-1.
+\end{matrix}
+\right.$
+
+Die Koeffizienten lassen sich also rekursiv in $\Oh(N\log N)$ berechnen.
+
+
+\end{document}
