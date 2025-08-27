@@ -1,7 +1,9 @@
 #pragma once
 #include "sw/dft/utils.hpp"
 
+#ifdef SWAUDIOLIB_USE_TBB
 #include <tbb/parallel_for.h>
+#endif
 
 #include <cassert>
 #include <concepts>
@@ -71,10 +73,16 @@ struct Processor<F, Algorithm::LinearTransform>
 
         if constexpr (doParallel)
         {
+#ifdef SWAUDIOLIB_USE_TBB
             tbb::parallel_for(tbb::blocked_range<size_t>(0, N), [&](const tbb::blocked_range<size_t> &r) {
                 for (auto k = r.begin(); k != r.end(); ++k)
                     processOutVal(k);
             });
+#else
+#pragma omp parallel for
+            for (auto k = 0u; k < N; ++k)
+                processOutVal(k);
+#endif
         }
         else
         {
@@ -115,11 +123,17 @@ struct Processor<F, Algorithm::FFT>
 
             if constexpr (doParallel)
             {
+#ifdef SWAUDIOLIB_USE_TBB
                 tbb::parallel_for(tbb::blocked_range<int>(0, static_cast<int>(numPartitions)),
                                   [&](const tbb::blocked_range<int> &r) {
                                       for (auto k = r.begin(); k != r.end(); ++k)
                                           processPartition(k);
                                   });
+#else
+#pragma omp parallel for
+                for (auto k = 0; k < numPartitions; ++k)
+                    processPartition(k);
+#endif
             }
             else
             {
@@ -225,11 +239,17 @@ public:
         const auto nHalf = n / 2;
         if constexpr (doingParallel)
         {
+#ifdef SWAUDIOLIB_USE_TBB
             tbb::parallel_for(tbb::blocked_range<int>(1, static_cast<int>(nHalf + 1)),
                               [&](const tbb::blocked_range<int> &r) {
                                   for (auto k = r.begin(); k != r.end(); ++k)
                                       deflateComplex(k);
                               });
+#else
+#pragma omp parallel for
+            for (auto k = 1; k <= nHalf; ++k)
+                deflateComplex(k);
+#endif
         }
         else
         {

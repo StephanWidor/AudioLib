@@ -39,12 +39,25 @@ set(SOURCES
 
 add_library(${PROJECT_NAME} INTERFACE ${SOURCES})
 
-find_package(TBB REQUIRED)
+find_package(TBB QUIET)
 
-target_link_libraries(${PROJECT_NAME}
-    INTERFACE
-    TBB::tbb
-    )
+if(TBB_FOUND)
+    message("Found TBB, will use that for parallel calculations")
+    target_link_libraries(${PROJECT_NAME}
+        INTERFACE
+        TBB::tbb
+        )
+    target_compile_definitions(${PROJECT_NAME} INTERFACE SWAUDIOLIB_USE_TBB=1)
+else()
+    message("TBB not found, trying OpenMP")
+    find_package(OpenMP QUIET COMPONENTS CXX)
+    if(OpenMP_FOUND)
+        target_link_libraries(${PROJECT_NAME} INTERFACE OpenMP::OpenMP_CXX)
+        message("Found OpenMP, will use that for parallel calculations")
+    else()
+        message("OpenMP not found. parallel execution flag in DFT will be ignored")
+    endif()
+endif()
 
 target_include_directories(${PROJECT_NAME} INTERFACE src)
 
