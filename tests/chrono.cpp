@@ -3,8 +3,6 @@
 
 #include <gtest/gtest.h>
 
-#include <iostream>
-
 namespace sw::chrono::tests {
 
 TEST(chronoTest, timer_with_busy_wait)

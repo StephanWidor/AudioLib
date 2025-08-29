@@ -29,7 +29,7 @@ TYPED_TEST(SineWaveDetectionTest, detectSineWaves)
     std::vector<F> dummyPhases(nyquistLength);
 
     dft::FFT<F> fft(fftLength);
-    constexpr auto zeroGainThresholdLinear = dBToFactor(static_cast<F>(-30));
+    const auto zeroGainThresholdLinear = dBToFactor(static_cast<F>(-30));
     for (auto frequency = static_cast<F>(100); frequency < math::oneHalf<F> * sampleRate;
          frequency += static_cast<F>(100))
     {
