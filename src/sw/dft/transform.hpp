@@ -253,7 +253,7 @@ public:
         }
         else
         {
-            for (auto k = 1; k <= nHalf; ++k)
+            for (auto k = 1u; k <= nHalf; ++k)
                 deflateComplex(k);
         }
 
