@@ -1,5 +1,4 @@
 #pragma once
-#include "sw/math/math.hpp"
 #include "sw/notes.hpp"
 #include "sw/ranges/defines.hpp"
 #include "sw/signals.hpp"
@@ -122,13 +121,17 @@ void envelopeAlignmentFactors(ranges::TypedInputRange<F> auto &&gains,
                               ranges::TypedInputRange<F> auto &&gainsToBeAligned,
                               ranges::TypedOutputRange<F> auto &&o_factors)
 {
-    const auto numGains = std::ranges::ssize(gains);
+    const auto numGains = static_cast<int>(std::ranges::size(gains));
     assert(numGains == std::ranges::ssize(gainsToBeAligned) && numGains == std::ranges::ssize(o_factors));
 
-    constexpr std::array<F, 21> c{0.0180, 0.0243, 0.0310, 0.0378, 0.0445, 0.0508, 0.0564,
-                                  0.0611, 0.0646, 0.0667, 0.0675, 0.0667, 0.0646, 0.0611,
-                                  0.0564, 0.0508, 0.0445, 0.0378, 0.0310, 0.0243, 0.0180};
-    constexpr auto offset = std::ranges::ssize(c) / 2;
+    constexpr std::array<F, 21> c{static_cast<F>(0.0180), static_cast<F>(0.0243), static_cast<F>(0.0310),
+                                  static_cast<F>(0.0378), static_cast<F>(0.0445), static_cast<F>(0.0508),
+                                  static_cast<F>(0.0564), static_cast<F>(0.0611), static_cast<F>(0.0646),
+                                  static_cast<F>(0.0667), static_cast<F>(0.0675), static_cast<F>(0.0667),
+                                  static_cast<F>(0.0646), static_cast<F>(0.0611), static_cast<F>(0.0564),
+                                  static_cast<F>(0.0508), static_cast<F>(0.0445), static_cast<F>(0.0378),
+                                  static_cast<F>(0.0310), static_cast<F>(0.0243), static_cast<F>(0.0180)};
+    constexpr auto offset = static_cast<int>(std::ranges::size(c)) / 2;
 
     const auto envelopeValue = [&](auto &&envGains, const auto i) {
         const auto gainsStart = std::max<int>(0, i - offset);
