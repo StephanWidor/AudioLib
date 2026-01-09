@@ -5,7 +5,6 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
-#include <chrono>
 #include <list>
 
 namespace {
@@ -183,7 +182,9 @@ TYPED_TEST(DFTTest, SingleSineWaves)
         for (auto j = 1u; j < frequencies.size(); ++j)
         {
             if (j == i)
+            {
                 EXPECT_NEAR(spectrum[j].imag(), -static_cast<F>(n), math::defaultTolerance<F>);
+            }
             EXPECT_NEAR(std::abs(spectrum[j] + spectrum[N - j]), math::zero<F>, math::defaultTolerance<F>);
         }
     }
