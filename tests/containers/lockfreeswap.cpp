@@ -1,59 +1,116 @@
 #include <sw/chrono/timer.hpp>
 #include <sw/containers/lockfreeswap.hpp>
+#include <sw/containers/utils.hpp>
 
 #include <gtest/gtest.h>
-
-#include <thread>
 
 namespace sw::containers::tests {
 
 namespace {
 
-void checkSwap(const std::chrono::milliseconds feedInterval, const std::chrono::milliseconds consumeInterval)
+template<size_t ArraySize>
+struct TestStruct
 {
-    using TestPair = std::pair<int, double>;
-    LockFreeSwap<TestPair> swap({});
-
-    TestPair feedPair{12, 1.1};
-    const auto feed = [&]() {
-        feedPair.first += 1;
-        feedPair.second *= 1.7;
-        swap.set(feedPair);
+    void push(int i)
+    {
+        swap.inSwap().fill(i);
         swap.push();
-    };
+    }
 
-    TestPair consumePair{2, 0.1};
-    const auto consume = [&]() { consumePair = swap.pull(); };
+    void pullAndCheck()
+    {
+        if (failedAnyway)
+            return;
+        const auto &consumedArray = swap.pull();
+        const auto startValue = consumedArray.front();
+        EXPECT_GE(startValue, lastValue);
+        if (startValue < lastValue)
+        {
+            failedAnyway = true;
+            return;
+        }
+        for (const auto i : consumedArray)
+        {
+            EXPECT_EQ(i, startValue);
+            if (i != startValue)
+            {
+                failedAnyway = true;
+                break;
+            }
+        }
+        lastValue = startValue;
+    }
 
-    chrono::Timer feedTimer, consumeTimer;
-
-    std::thread feedingThread([&]() { feedTimer.start(feed, feedInterval, chrono::Timer::Wait::Busy); });
-    std::thread consumingThread([&]() { consumeTimer.start(consume, consumeInterval, chrono::Timer::Wait::Busy); });
-
-    std::this_thread::sleep_for(
-      std::chrono::milliseconds(100 * std::max(feedInterval.count(), consumeInterval.count())));
-
-    feedTimer.stop();
-    feedingThread.join();
-
-    std::this_thread::sleep_for(consumeInterval);
-
-    consumeTimer.stop();
-    consumingThread.join();
-
-    EXPECT_EQ(feedPair, consumePair);
-}
+    using Array = std::array<int, ArraySize>;
+    int lastValue = 0;
+    bool failedAnyway = false;
+    LockFreeSwap<Array> swap{makeFilledArray<ArraySize>(lastValue)};
+};
 
 }    // namespace
 
-TEST(LockFreeSwapTest, faster_feeding)
+TEST(LockFreeSwapTest, slower_feeding)
 {
-    checkSwap(std::chrono::milliseconds(5), std::chrono::milliseconds(21));
+    TestStruct<100> test{};
+
+    chrono::Timer feedTimer;
+    int i = 0;
+    feedTimer.start([&]() { test.push(++i); }, std::chrono::milliseconds(3), chrono::Timer::Wait::Busy);
+
+    bool keepConsuming = true;
+    std::thread consumingThread([&]() {
+        while (keepConsuming)
+            test.pullAndCheck();
+    });
+
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    keepConsuming = false;
+    feedTimer.stop();
+    consumingThread.join();
 }
 
-TEST(LockFreeSwapTest, faster_consuming)
+TEST(LockFreeSwapTest, slower_consuming)
 {
-    checkSwap(std::chrono::milliseconds(40), std::chrono::milliseconds(11));
+    TestStruct<50> test{};
+
+    bool keepFeeding = true;
+    std::thread feedingThread([&]() {
+        auto i = 0;
+        while (keepFeeding)
+            test.push(++i);
+    });
+
+    chrono::Timer consumeTimer;
+    consumeTimer.start([&]() { test.pullAndCheck(); }, std::chrono::milliseconds(3), chrono::Timer::Wait::Busy);
+
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    keepFeeding = false;
+    consumeTimer.stop();
+    feedingThread.join();
+}
+
+TEST(LockFreeSwapTest, fast_feeding_and_consuming)
+{
+    TestStruct<20> test{};
+
+    bool keepFeeding = true;
+    std::thread feedingThread([&]() {
+        int i = 0;
+        while (keepFeeding)
+            test.push(++i);
+    });
+
+    bool keepConsuming = true;
+    std::thread consumingThread([&]() {
+        while (keepConsuming)
+            test.pullAndCheck();
+    });
+
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    keepFeeding = false;
+    keepConsuming = false;
+    feedingThread.join();
+    consumingThread.join();
 }
 
 }    // namespace sw::containers::tests
