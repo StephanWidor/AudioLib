@@ -14,10 +14,6 @@ public:
 
     ~Timer() { stop(); }
 
-    void interval(std::chrono::milliseconds interval) { m_interval = interval; }
-
-    std::chrono::milliseconds interval() const { return m_interval; }
-
     enum class Wait
     {
         Sleep,
@@ -30,20 +26,18 @@ public:
         if (m_running)
             return false;
 
-        const auto run = [&]() {
-            bool running = true;
-            m_running = &running;
+        const auto run = [interval, wait, callback, this]() {
+            m_running = true;
             const auto sleepUntil = wait == Wait::Busy ? Timer::busyWait : Timer::sleepWait;
-            while (running)
+            while (m_running)
             {
-                const auto wakeUpTime = clock::now() + m_interval.load();
+                const auto wakeUpTime = clock::now() + interval;
                 std::invoke(callback);
                 sleepUntil(wakeUpTime);
             }
         };
 
-        m_interval = interval;
-        std::thread(run).detach();
+        m_thread = std::thread(run);
         return true;
     }
 
@@ -52,12 +46,12 @@ public:
         std::lock_guard lock(m_startStopMutex);
         if (m_running)
         {
-            *m_running = false;
-            m_running = nullptr;
+            m_running = false;
+            m_thread.join();
         }
     }
 
-    bool running() const { return m_running && *m_running; }
+    bool running() const { return m_running; }
 
 private:
     static void busyWait(const clock::time_point wakeUpTime)
@@ -67,9 +61,9 @@ private:
     }
     static void sleepWait(const clock::time_point wakeUpTime) { std::this_thread::sleep_until(wakeUpTime); }
 
-    std::atomic<std::chrono::milliseconds> m_interval{std::chrono::milliseconds{1000}};
     std::mutex m_startStopMutex;
-    bool *m_running = nullptr;
+    std::thread m_thread;
+    bool m_running = false;
 };
 
 }    // namespace sw::chrono
