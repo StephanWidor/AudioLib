@@ -4,7 +4,7 @@
 #include <atomic>
 #include <vector>
 
-namespace sw::containers {
+namespace sw::containers::spsc {
 
 template<typename ValueType>
 class SpinLockedRingBuffer
@@ -72,4 +72,4 @@ private:
     mutable std::atomic<bool> m_newDataAvailable{true};
 };
 
-}    // namespace sw::containers
+}    // namespace sw::containers::spsc

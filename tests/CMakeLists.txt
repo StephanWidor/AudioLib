@@ -5,7 +5,7 @@ add_executable(${PROJECT_NAME}
     chrono.cpp
     notes.cpp
     sinewavedetection.cpp
-    containers/spinlockedringbuffer.cpp
+    containers/spsc/spinlockedringbuffer.cpp
     containers/spsc/swap.cpp
     dft/dft.cpp
     dft/spectrum.cpp

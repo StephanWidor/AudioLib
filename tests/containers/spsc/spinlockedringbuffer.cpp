@@ -1,11 +1,11 @@
 #include <sw/chrono/timer.hpp>
-#include <sw/containers/spinlockedringbuffer.hpp>
+#include <sw/containers/spsc/spinlockedringbuffer.hpp>
 
 #include <gtest/gtest.h>
 
 #include <thread>
 
-namespace sw::containers::tests {
+namespace sw::containers::spsc::tests {
 
 void checkBuffer(const size_t bufferSize, const std::chrono::milliseconds feedInterval,
                  const std::chrono::milliseconds consumeInterval)
@@ -59,4 +59,4 @@ TEST(SpinLockedBufferTest, faster_consuming)
     checkBuffer(20u, std::chrono::milliseconds(40), std::chrono::milliseconds(11));
 }
 
-}    // namespace sw::containers::tests
+}    // namespace sw::containers::spsc::tests

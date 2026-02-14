@@ -1,5 +1,5 @@
 #pragma once
-#include "sw/containers/spinlockedringbuffer.hpp"
+#include "sw/containers/spsc/spinlockedringbuffer.hpp"
 #include "sw/math/math.hpp"
 #include "sw/ranges/defines.hpp"
 
@@ -56,8 +56,8 @@ public:
     const std::vector<F> &outputBuffer() const { return m_outputBuffer.outBuffer(); }
 
 private:
-    containers::SpinLockedRingBuffer<F> m_inputBuffer;
-    containers::SpinLockedRingBuffer<F> m_outputBuffer;
+    containers::spsc::SpinLockedRingBuffer<F> m_inputBuffer;
+    containers::spsc::SpinLockedRingBuffer<F> m_outputBuffer;
     std::vector<F> m_processedSignalBuffer;
 
     size_t m_numNewProcessingSamples{0u};

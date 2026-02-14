@@ -22,8 +22,8 @@ set(SOURCES
     src/sw/variant.hpp
     src/sw/chrono/stopwatch.hpp
     src/sw/chrono/timer.hpp
-    src/sw/containers/spinlockedringbuffer.hpp
     src/sw/containers/utils.hpp
+    src/sw/containers/spsc/spinlockedringbuffer.hpp
     src/sw/containers/spsc/swap.hpp
     src/sw/dft/spectrum.hpp
     src/sw/dft/transform.hpp
