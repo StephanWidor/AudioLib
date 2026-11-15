@@ -28,7 +28,7 @@ public:
         {
             if (std::atomic_ref(m_dataStates[i]).load(std::memory_order::acquire) == Free)
             {
-                m_dataStates[i] = Writing;
+                std::atomic_ref(m_dataStates[i]).store(Writing, std::memory_order::relaxed);
                 m_writingPage = i;
                 return m_data[i];
             }
@@ -50,7 +50,7 @@ public:
         {
             if (std::atomic_ref(m_dataStates[i]).load(std::memory_order::acquire) == Free)
             {
-                m_dataStates[i] = Writing;
+                std::atomic_ref(m_dataStates[i]).store(Writing, std::memory_order::relaxed);
                 m_writingPage = i;
                 return m_data[i];
             }

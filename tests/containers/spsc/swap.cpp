@@ -1,8 +1,8 @@
+#include <atomic>
+#include <gtest/gtest.h>
 #include <sw/chrono/timer.hpp>
 #include <sw/containers/spsc/swap.hpp>
 #include <sw/containers/utils.hpp>
-
-#include <gtest/gtest.h>
 
 namespace sw::containers::spsc::tests {
 
@@ -16,11 +16,11 @@ void testFeedingAndConsuming(std::chrono::milliseconds feedingWaitTime, std::chr
     int lastValue = 0;
     bool failedAnyway = false;
     Swap<Array> swap{makeFilledArray<ArraySize>(lastValue)};
-    bool keepRunning = true;
+    std::atomic<bool> keepRunning{true};
 
     std::thread feedingThread([&]() {
         int i = 0;
-        while (keepRunning)
+        while (keepRunning.load(std::memory_order::relaxed))
         {
             swap.inSwap().fill(++i);
             swap.push();
@@ -30,7 +30,7 @@ void testFeedingAndConsuming(std::chrono::milliseconds feedingWaitTime, std::chr
     });
 
     std::thread consumingThread([&]() {
-        while (keepRunning)
+        while (keepRunning.load(std::memory_order::relaxed))
         {
             if (failedAnyway)
                 return;
@@ -58,7 +58,7 @@ void testFeedingAndConsuming(std::chrono::milliseconds feedingWaitTime, std::chr
     });
 
     std::this_thread::sleep_for(runTime);
-    keepRunning = false;
+    keepRunning.store(false, std::memory_order::relaxed);
     feedingThread.join();
     consumingThread.join();
 }
