@@ -49,4 +49,46 @@ TEST(chronoTest, timer_sleep_callback_takes_longer_than_interval)
     EXPECT_GT(tickCount, 1u);
 }
 
+TEST(chronoTest, timer_request_stop_from_callback)
+{
+    sw::chrono::Timer timer;
+    std::atomic<size_t> tickCount = 0u;
+    const auto tick = [&]() {
+        if (++tickCount == 3u)
+            timer.requestStop();
+    };
+
+    EXPECT_TRUE(timer.start(tick, std::chrono::milliseconds(10), Timer::Wait::Sleep));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_FALSE(timer.running());
+    EXPECT_EQ(tickCount, 3u);
+
+    // restart after the timer stopped itself
+    tickCount = 0u;
+    EXPECT_TRUE(timer.start(tick, std::chrono::milliseconds(10), Timer::Wait::Busy));
+    EXPECT_TRUE(timer.running());
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_EQ(tickCount, 3u);
+}
+
+TEST(chronoTest, timer_request_stop_from_first_callback)
+{
+    for (auto i = 0u; i < 200u; ++i)
+    {
+        sw::chrono::Timer timer;
+        std::atomic<size_t> tickCount = 0u;
+        timer.start(
+          [&]() {
+              timer.requestStop();
+              ++tickCount;
+          },
+          std::chrono::milliseconds(1), Timer::Wait::Sleep);
+        while (tickCount == 0u)
+            std::this_thread::yield();
+        timer.stop();
+        EXPECT_FALSE(timer.running());
+        EXPECT_EQ(tickCount, 1u);
+    }
+}
+
 }    // namespace sw::chrono::tests
