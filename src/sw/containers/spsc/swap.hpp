@@ -11,7 +11,7 @@ class Swap
 public:
     using Value = ValueType;
 
-    Swap(const Value &initValue): m_data{{initValue, initValue, initValue}} {}
+    Swap(const Value &initValue): m_data{{initValue, initValue, initValue}} { }
 
     // feeding/producing side
 
@@ -38,7 +38,7 @@ public:
         //const auto last_written_page = m_writtenPage;
         DataState expectedState = Written;
         if (std::atomic_ref(m_dataStates[m_writtenPage])
-              .compare_exchange_weak(expectedState, Writing, std::memory_order::acq_rel, std::memory_order::acquire))
+              .compare_exchange_strong(expectedState, Writing, std::memory_order::acq_rel, std::memory_order::acquire))
         {
             m_writingPage = m_writtenPage;
             return m_data[m_writingPage];
@@ -70,7 +70,7 @@ public:
 
         DataState expectedState = Written;
         std::atomic_ref(m_dataStates[m_writtenPage])
-          .compare_exchange_weak(expectedState, Free, std::memory_order::acq_rel, std::memory_order::acquire);
+          .compare_exchange_strong(expectedState, Free, std::memory_order::acq_rel, std::memory_order::acquire);
         std::atomic_ref(m_dataStates[m_writingPage]).store(Written, std::memory_order::release);
         m_writtenPage = m_writingPage;
         m_writingPage = 3;
@@ -88,8 +88,8 @@ public:
         {
             DataState expectedState = Written;
             if (std::atomic_ref(m_dataStates[i])
-                  .compare_exchange_weak(expectedState, Reading, std::memory_order::acq_rel,
-                                         std::memory_order::acquire))
+                  .compare_exchange_strong(expectedState, Reading, std::memory_order::acq_rel,
+                                           std::memory_order::acquire))
             {
                 std::atomic_ref(m_dataStates[m_readingPage]).store(Free, std::memory_order::release);
                 m_readingPage = i;
